@@ -28,6 +28,7 @@ let ul;
 // Initialise state
 let filterCategory = 'name';
 let sortType = 'ascending';
+let results;
 
 
 /*-----------------  
@@ -35,14 +36,13 @@ let sortType = 'ascending';
   ----------------- */
 
 const displayResults = (persons) => {
-    console.log('displayResults')
+  
     resultsCount.innerHTML = 'Results found: '  + persons.length;
    
     let resultsSection = document.getElementById('resultsSection');
 
     // Remove <ul> if it already exists
     ul = document.getElementById('resultsList');
-    //if (ul !== null) document.body.removeChild(ul);
     if (ul !== null) resultsSection.removeChild(ul);
 
     // If we have results create a new <ul>
@@ -51,7 +51,6 @@ const displayResults = (persons) => {
     ul.id = 'resultsList';
     ul.className = 'results-list';
     resultsSection.append(ul)
-    //document.body.appendChild(ul);
 
     // Add relevant <li> tags to it
     return persons.map(function(person) { // Map through the results and for each run the code below
@@ -93,9 +92,13 @@ const search = (catVal, targetVal) => {
    
    return entireData.filter((person)=>{
      if (cat === 'gender') {
-      return  person[cat].toLowerCase() === target ? true : false;
+        if (target === 'female' || target === 'male') {
+          return  person[cat].toLowerCase() === target ? true : false;
+        } else {
+        return true;
+        }
      } else if (cat === 'email') {
-      return  person[cat].includes(target) ? true : false;
+        return  person[cat].includes(target) ? true : false;
      } else if (cat === 'name'){
         const isInName = (target) => {
           const cond1 = person['first_name'].toLowerCase().includes(target);
@@ -154,7 +157,6 @@ const sortDescending = (a, b) => {
   ----------------- */
 
 const handleDropdownChange = (e) => {
-  console.log('handleDropdownChange')
   // Store the category that has been selected
   filterCategory =  e.target.value;
   // Change prompt text
@@ -166,31 +168,18 @@ const handleDropdownChange = (e) => {
   handleSubmit();
 }
 
-const handleInputChange = (e) => {
-  console.log('handleInputChange')
-  let doSubmit = false;
-  if (filterCategory === 'name' || filterCategory === 'email') {
-    doSubmit = true;
-  } else if (input.value === 'male' || input.value === 'female') {
-    doSubmit = true;
-  }
-  if (doSubmit) handleSubmit();
-}
-
-
 const handleSubmit = (e) => {
-    console.log('handleSubmit')
-    const results = search(filterCategory, input.value.toLowerCase());
+    results = search(filterCategory, input.value.toLowerCase());
     displayResults(results);
 }
 
 const handleSort = () => {
-  console.log('handleSort')
   let sortFunction = (sortType == 'ascending') ? sortAscending : sortDescending;
-  const results = entireData.sort(sortFunction);
+  results = results.sort(sortFunction);
   displayResults(results);
   toggleSort();
 }
+
 
 const handleItemSelect = (person) => {
   // Clear local storage
@@ -203,45 +192,6 @@ const handleItemSelect = (person) => {
 
 // Set event handlers
 dropdown.onchange = handleDropdownChange;
-input.onkeyup = handleInputChange;
+input.onkeyup = handleSubmit;
 sortBtn.onclick = handleSort;
-
-
-
-/* -----------------  
-Local storage
-  ----------------- */
-/*
-Make sure window has a local storage key
-and that the localstorage key is not null
-In some browsers this could cause an error
-So we will run it in a try catch block
-If there are any exceptions return false
-*/
-/*
-function supportsLocalStorage() {
-    try {
-      return 'localStorage' in window && window['localStorage'] !== null;
-    } catch(e){
-      return false;
-    }
-}
-
-function appendListItem(listElement, string) {
-      var listItemElement = document.createElement('LI');
-      listItemElement.innerHTML = string;
-      listElement.appendChild(listItemElement);
-}
-
-// Make sure Local Storage exists before trying to use it
-//if (supportsLocalStorage) {
-*/
-
-
-
-
-
-
-
-
 
