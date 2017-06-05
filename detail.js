@@ -1,22 +1,25 @@
 // Display persons name as header
 const person = JSON.parse(localStorage.selected);
 const header = document.getElementById('headerTitle');
-header.innerHTML = person.first_name  + ' ' + person.last_name + ', ' + person.gender + ', ' + person.email;
+header.innerHTML = person.first_name  + ' ' + person.last_name;
 
 
 let ul;
 const displayResults = (persons) => {
 
-    //resultsCount.innerHTML = 'Results found: '  + persons.length;
-   
+    let resultsSection = document.getElementById('resultsSection');
+
     // Remove <ul> if it already exists
     ul = document.getElementById('resultsList');
-    if (ul !== null) document.body.removeChild(ul);
+    //if (ul !== null) document.body.removeChild(ul);
+    if (ul !== null) resultsSection.removeChild(ul);
 
     // If we have results create a new <ul>
     ul = document.createElement('ul');
     ul.id = 'resultsList';
-    document.body.appendChild(ul);
+    ul.className = 'results-list';
+    //document.body.appendChild(ul);
+    resultsSection.append(ul)
 
     // Add relevant <li> tags to it
     return persons.map(function(person) { // Map through the results and for each run the code below
@@ -32,7 +35,6 @@ const displayResults = (persons) => {
       }
       li.appendChild(p);
       li.appendChild(img)
-      //li.appendChild(span);
       ul.appendChild(li);
     })
 }
