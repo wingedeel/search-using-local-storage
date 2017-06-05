@@ -1,10 +1,3 @@
-/*
-Tidy vanilla js code
-Style details page
-Pass data into details page
-Convert to React?
-*/
-
 
 /* -----------------
   Read in data file
@@ -19,48 +12,39 @@ fetch('data.json')
   })
   .catch(err => console.log(err));
 
-const categories = ['name', 'gender', 'email'];
 
-
-/* -----------------
-  Interface Elements
+/* -----------------  
+  INITIALISATION
   ----------------- */
-const input = document.getElementById('search-input');
-const submitBtn = document.getElementById('submit-btn');
+
+// Get references to DOM elements
 const dropdown = document.getElementById('dropdown');
-const resultsCount = document.getElementById('results-count');
-const sortBtn = document.getElementById('sort-btn')
-
-
-
-/* -----------------
-  - Display a list of people from the data file showing:
-  ----------------- 
-  - first name
-  - last name
-  - email
-  - gender
-
-
-  Create a table
-  */
-//const ul = document.getElementById('persons');
-
+const input = document.getElementById('textInput');
+const submitBtn = document.getElementById('submitBtn');
+const sortBtn = document.getElementById('sortBtn');
+const resultsCount = document.getElementById('resultsTitle');
 let ul;
+
+// Initialise state
+let filterCategory = 'name';
+let sortType = 'ascending';
+
+
+/*-----------------  
+  DISPLAY DATA
+  ----------------- */
+
 const displayResults = (persons) => {
-   
-    // Remove <ul> if it already exists
-    ul = document.getElementById('personsList');
-    if (ul !== null){
-      document.body.removeChild(ul);
-    }
 
     resultsCount.innerHTML = 'Results found: '  + persons.length;
+   
+    // Remove <ul> if it already exists
+    ul = document.getElementById('resultsList');
+    if (ul !== null) document.body.removeChild(ul);
 
-    // If we have results
-    // Create a new <ul>
+    // If we have results create a new <ul>
     ul = document.createElement('ul');
-    ul.id = 'personsList';
+    ul.id = 'resultsList';
     document.body.appendChild(ul);
 
     // Add relevant <li> tags to it
@@ -78,7 +62,9 @@ const displayResults = (persons) => {
                         ${person.email} 
                         ${person.gender}`; // Make the HTML of our span to be the first and last name of our author
      // append(li, img); // Append all our elements
-      li.onclick = handleItemSelect;
+      li.onclick = function() {
+          handleItemSelect(person);
+      }
       li.appendChild(p);
       //li.appendChild(span);
       ul.appendChild(li);
@@ -86,35 +72,25 @@ const displayResults = (persons) => {
 }
 
 
-const handleItemSelect = () => {
-  console.log('item select')
-  //"location.href='details.html';
- // window.open("detail.html");
-}
-/* -----------------
-  Create a Details page, 
-  accessed by clicking on a table link
+/*-----------------  
+  SEARCH DATA
   ----------------- */
+/*
+- If category is gender, filter by male or female
+- If category is name, look at first_name and last_name properties
+- and see if val is contained within either
+*/
 
-
-
-/* -----------------  
-  SEARCH
-  ----------------- */
 const search = (catVal, targetVal) => {
     const target = targetVal.toLowerCase();
     const cat = catVal.toLowerCase();
-    // If category is gender filter by male or female
-    // If category is name, look at first_name and last_name
-    // and see if val is contained within either
+   
    return entireData.filter((person)=>{
      if (cat === 'gender') {
       return  person[cat].toLowerCase() === target ? true : false;
-     }
-     if (cat === 'email') {
+     } else if (cat === 'email') {
       return  person[cat].includes(target) ? true : false;
-     }
-     if (cat === 'name'){
+     } else if (cat === 'name'){
         const isInName = (target) => {
           const cond1 = person['first_name'].toLowerCase().includes(target);
           const cond2 = person['last_name'].toLowerCase().includes(target);
@@ -127,8 +103,21 @@ const search = (catVal, targetVal) => {
 
 
 /* -----------------  
-  HANDLE INPUT CHANGE
+  HANDLERS
   ----------------- */
+
+const handleDropdownChange = (e) => {
+  // Store the category that has been selected
+  filterCategory =  e.target.value;
+  // Change prompt text
+  let promptStr = ''
+  if (filterCategory === 'name')  promptStr = 'Enter a name';
+  if (filterCategory === 'email') promptStr = 'Enter an email address';
+  if (filterCategory === 'gender') promptStr = "Enter male' or 'female'";
+  input.placeholder = promptStr;
+  handleSubmit();
+}
+
 const handleInputChange = () => {
   let doSubmit = false;
   if (filterCategory === 'name' || filterCategory === 'email') {
@@ -139,22 +128,10 @@ const handleInputChange = () => {
   if (doSubmit) handleSubmit();
 }
 
-/* -----------------  
-  SORT
-  ----------------- */
-let sortType;
-
-
-const initSort = ()=>{
-   sortType = 'ascending';
-   sortBtn.value = 'Sort: ' + sortType;
+const handleSubmit = () => {
+    const results = search(filterCategory, input.value.toLowerCase());
+    displayResults(results);
 }
-
-const toggleSort = ()=>{
-  sortType = (sortType == 'ascending') ? 'descending' : 'ascending';
-  sortBtn.value = 'Sort: ' + sortType;
-}
-
 
 const handleSort = () => {
   let sortFunction = (sortType == 'ascending') ? sortAscending : sortDescending;
@@ -163,6 +140,34 @@ const handleSort = () => {
   toggleSort();
 }
 
+const handleItemSelect = (person) => {
+  // Clear local storage
+  localStorage.removeItem('selected');
+  // Store the data
+  localStorage.setItem('selected', JSON.stringify(person))
+  let popup = window.open("detail.html");
+}
+
+
+// Set event handlers
+dropdown.onchange = handleDropdownChange;
+input.onkeyup = handleInputChange;
+submitBtn.onclick = handleSubmit;
+sortBtn.onclick = handleSort;
+
+
+
+
+
+
+/* -----------------  
+  SORT
+  ----------------- */
+
+const toggleSort = () =>{
+  sortType = (sortType == 'ascending') ? 'descending' : 'ascending';
+  sortBtn.value = 'Sort: ' + sortType;
+}
 
 const sortAscending = (a, b) => {
   const compareKey = 'last_name';
@@ -191,34 +196,45 @@ const sortDescending = (a, b) => {
   return comparison;
 }
 
-initSort();
 
 
 
 
-const handleSubmit = () =>{
-    const results = search(filterCategory, input.value.toLowerCase());
-    displayResults(results);
-}
 
-const handleDropdownChange = (e) => {
-  // Store the category that has been selected
-  filterCategory =  e.target.value;
-  // Change prompt text
-  let promptStr = ''
-  if (filterCategory === 'name')  promptStr = 'Enter a name';
-  if (filterCategory === 'email') promptStr = 'Enter an email address';
-  if (filterCategory === 'gender') promptStr = "Enter male' or 'female'";
-  input.placeholder = promptStr;
-  handleSubmit();
-}
 
 /* -----------------  
-Select state from dropdown
+Local storage
   ----------------- */
-let filterCategory = 'name';
+/*
+Make sure window has a local storage key
+and that the localstorage key is not null
+In some browsers this could cause an error
+So we will run it in a try catch block
+If there are any exceptions return false
+*/
+function supportsLocalStorage() {
+    try {
+      return 'localStorage' in window && window['localStorage'] !== null;
+    } catch(e){
+      return false;
+    }
+}
 
-input.onkeyup = handleInputChange;
-dropdown.onchange = handleDropdownChange;
-submitBtn.onclick = handleSubmit;
-sortBtn.onclick = handleSort;
+function appendListItem(listElement, string) {
+      var listItemElement = document.createElement('LI');
+      listItemElement.innerHTML = string;
+      listElement.appendChild(listItemElement);
+}
+
+// Make sure Local Storage exists before trying to use it
+//if (supportsLocalStorage) {
+
+
+
+
+
+
+
+
+
+
